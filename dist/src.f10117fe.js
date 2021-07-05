@@ -117,29 +117,221 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"src/app.ts":[function(require,module,exports) {
+})({"src/app.template.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+var template = "\n<div class=\"min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12\">\n  <div class=\"relative py-3 sm:max-w-xl sm:mx-auto\">\n\n    <div class=\"leading-loose\">\n      <form id=\"sign-up-form\" class=\"max-w-xl m-4 p-10 bg-white rounded shadow-xl\">\n        <p class=\"text-gray-800 font-medium mb-5 text-center\">{{title}}</p>\n        <div id=\"required-fields\">\n        \n        </div>\n        \n        <p class=\"mt-8 text-gray-300 text-sm\">Additional information</p>\n\n        <div id=\"optional-fields\">\n        \n        </div>\n\n        <div class=\"mt-4\">\n          <button id=\"btn-join\" class=\"px-4 py-1 text-white font-light tracking-wider bg-gray-300 rounded\" type=\"submit\">\uD68C\uC6D0 \uAC00\uC785</button>\n        </div>    \n      </form>\n    </div>\n\n  </div>\n</div>\n";
+exports.default = window.Handlebars.compile(template);
+},{}],"src/views/text-field.template.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var template = "\n  <div id=\"field-{{id}}\" class=\"mt-4\">\n    <div class=\"flex items-start mb-1\">\n      <span class=\"flex items-center\">\n        <svg class=\"flex-shrink-0 h-5 w-5 {{#if valid}}{{#if updated}}text-green-500{{else}}text-gray-200{{/if}}{{else}}text-gray-200{{/if}}\" viewBox=\"0 0 20 20\" fill=\"currentColor\">\n          <path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z\" clip-rule=\"evenodd\" />\n        </svg>\n      </span>\n      <label class=\"block text-sm\" for=\"name\">{{label}}</label>\n    </div>\n    <input id=\"{{id}}\" name=\"{{id}}\" type=\"{{type}}\" value=\"{{text}}\" {{#if require}}required{{/if}} \n      placeholder=\"{{placeholder}}\" aria-label=\"Name\" class=\"w-full px-5 py-1 text-gray-700 {{#if valid}}bg-gray-200{{else}}bg-red-200{{/if}} rounded\">\n    {{#unless valid}}\n    <div class=\"flex items-start mb-1\">\n      <label class=\"block text-sm text-red-300\" for=\"cus_email\">{{validateMessage}}</label>\n    </div>\n    {{/unless}}\n  </div>\n";
+exports.default = window.Handlebars.compile(template);
+},{}],"src/utils/index.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.nextTick = void 0;
+
+var nextTick = function nextTick(fn) {
+  return setTimeout(fn, 16);
+};
+
+exports.nextTick = nextTick;
+},{}],"src/views/text-field.ts":[function(require,module,exports) {
+"use strict";
+
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+
+      for (var p in s) {
+        if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+      }
+    }
+
+    return t;
+  };
+
+  return __assign.apply(this, arguments);
+};
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var text_field_template_1 = __importDefault(require("./text-field.template"));
+
+var utils_1 = require("../utils");
+
+var DefaultProps = {
+  id: '',
+  label: 'label',
+  type: 'text',
+  text: '',
+  placeholder: '',
+  require: false
+};
+
+var TextField =
+/** @class */
+function () {
+  function TextField(container, data) {
+    if (data === void 0) {
+      data = {};
+    }
+
+    this.template = text_field_template_1.default;
+    this.template = text_field_template_1.default;
+    this.data = data;
+    this.container = document.querySelector(container);
+    this.updated = false;
+    this.data = __assign(__assign({}, DefaultProps), data);
+    utils_1.nextTick(this.attachEventHanlder);
+  }
+
+  TextField.prototype.attachEventHanlder = function () {
+    var _this = this;
+
+    var _a;
+
+    (_a = this.container) === null || _a === void 0 ? void 0 : _a.addEventListener('change', function () {
+      return _this.onChange;
+    });
+  };
+
+  TextField.prototype.buildData = function () {
+    if (this.updated) {
+      return __assign(__assign({}, this.data), {
+        updated: this.updated
+      });
+    } else {
+      return __assign(__assign({}, this.data), {
+        updated: this.updated,
+        valid: true
+      });
+    }
+  };
+
+  TextField.prototype.onChange = function (e) {
+    var _a = e.target,
+        id = _a.id,
+        value = _a.value;
+
+    if (id === this.data.id) {
+      // this.update = true
+      this.data.text = value; // this.update()
+    }
+  };
+
+  TextField.prototype.render = function () {
+    var divFragement = document.createElement('div');
+    divFragement.innerHTML = this.template(this.buildData());
+    this.container.appendChild(divFragement.children[0]);
+  };
+
+  return TextField;
+}();
+
+exports.default = TextField;
+},{"./text-field.template":"src/views/text-field.template.ts","../utils":"src/utils/index.ts"}],"src/views/index.ts":[function(require,module,exports) {
+"use strict";
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TextField = void 0; // export { default as AddressField } from './address-field';
+
+var text_field_1 = require("./text-field");
+
+Object.defineProperty(exports, "TextField", {
+  enumerable: true,
+  get: function get() {
+    return __importDefault(text_field_1).default;
+  }
+}); // export { default as PasswordField } from './password-field';
+},{"./text-field":"src/views/text-field.ts"}],"src/app.ts":[function(require,module,exports) {
+"use strict";
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var app_template_1 = __importDefault(require("./app.template"));
+
+var views_1 = require("./views");
 
 var App =
 /** @class */
 function () {
   function App(container) {
+    this.template = app_template_1.default;
     this.container = document.getElementById(container);
+    this.container.innerHTML = this.template({
+      title: '내가 만드는 회원가입'
+    });
+    this.textNodes = [];
+    this.textNodes.push(new views_1.TextField('#required-fields', {
+      id: 'name',
+      label: '이름',
+      type: 'text',
+      placeholder: '이름을 입력하세요.',
+      require: true
+    }));
+    this.textNodes.push(new views_1.TextField('#required-fields', {
+      id: 'id',
+      label: '아이디',
+      type: 'text',
+      placeholder: '아이디를 입력하세요.',
+      require: true
+    }));
+    this.textNodes.push(new views_1.TextField('#required-fields', {
+      id: 'email',
+      label: '이메일',
+      type: 'email',
+      placeholder: '이메일을 입력하세요.',
+      require: true
+    }));
   }
 
   App.prototype.render = function () {
-    this.container.innerHTML = '<h1>hi</h1>';
+    this.textNodes.forEach(function (node) {
+      node.render();
+    });
   };
 
   return App;
 }();
 
 exports.default = App;
-},{}],"src/index.ts":[function(require,module,exports) {
+},{"./app.template":"src/app.template.ts","./views":"src/views/index.ts"}],"src/index.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -184,7 +376,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49684" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55845" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
