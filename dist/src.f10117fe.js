@@ -125,6 +125,43 @@ Object.defineProperty(exports, "__esModule", {
 });
 var template = "\n<div class=\"min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12\">\n  <div class=\"relative py-3 sm:max-w-xl sm:mx-auto\">\n\n    <div class=\"leading-loose\">\n      <form id=\"sign-up-form\" class=\"max-w-xl m-4 p-10 bg-white rounded shadow-xl\">\n        <p class=\"text-gray-800 font-medium mb-5 text-center\">{{title}}</p>\n        <div id=\"required-fields\">\n        \n        </div>\n        \n        <p class=\"mt-8 text-gray-300 text-sm\">Additional information</p>\n\n        <div id=\"optional-fields\">\n        \n        </div>\n\n        <div class=\"mt-4\">\n          <button id=\"btn-join\" class=\"px-4 py-1 text-white font-light tracking-wider bg-gray-300 rounded\" type=\"submit\">\uD68C\uC6D0 \uAC00\uC785</button>\n        </div>    \n      </form>\n    </div>\n\n  </div>\n</div>\n";
 exports.default = window.Handlebars.compile(template);
+},{}],"src/constants.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.RequireEmailRule = exports.MinimumLengthLimit = exports.CantStartNumber = exports.CantContainWhitespace = exports.RequireRule = void 0;
+exports.RequireRule = {
+  rule: /.+/,
+  match: true,
+  message: '필수 입력 항목입니다.'
+};
+exports.CantContainWhitespace = {
+  rule: /\s/,
+  match: false,
+  message: '공백을 포함할 수 없습니다.'
+};
+exports.CantStartNumber = {
+  rule: /^\d/,
+  match: false,
+  message: '숫자로 시작하는 아이디는 사용할 수 없습니다.'
+};
+
+var MinimumLengthLimit = function MinimumLengthLimit(limit) {
+  return {
+    rule: new RegExp("(.){" + limit + "}"),
+    match: true,
+    message: "\uCD5C\uC18C\uD55C " + limit + "\uAE00\uC790 \uC774\uC0C1 \uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4."
+  };
+};
+
+exports.MinimumLengthLimit = MinimumLengthLimit;
+exports.RequireEmailRule = {
+  rule: /@/,
+  match: true,
+  message: '이메일 형식으로 입력하셔야 합니다.'
+};
 },{}],"src/views/text-field.template.ts":[function(require,module,exports) {
 "use strict";
 
@@ -179,6 +216,8 @@ var text_field_template_1 = __importDefault(require("./text-field.template"));
 
 var utils_1 = require("../utils");
 
+var constants_1 = require("../constants");
+
 var DefaultProps = {
   id: '',
   label: 'label',
@@ -192,33 +231,58 @@ var TextField =
 /** @class */
 function () {
   function TextField(container, data) {
+    var _this = this;
+
     if (data === void 0) {
       data = {};
     }
 
     this.template = text_field_template_1.default;
-    this.template = text_field_template_1.default;
-    this.data = data;
-    this.container = document.querySelector(container);
     this.updated = false;
+    this.validateRules = [];
+
+    this.attachEventHanlder = function () {
+      var _a;
+
+      (_a = document.querySelector(_this.container)) === null || _a === void 0 ? void 0 : _a.addEventListener('change', _this.onChange);
+    };
+
+    this.onChange = function (e) {
+      var _a = e.target,
+          id = _a.id,
+          value = _a.value;
+
+      if (id === _this.data.id) {
+        _this.updated = true;
+        _this.data.text = value;
+
+        _this.update();
+      }
+    };
+
+    this.data = data;
+    this.container = container;
     this.data = __assign(__assign({}, DefaultProps), data);
+    this.addValidateRules(constants_1.RequireRule);
     utils_1.nextTick(this.attachEventHanlder);
   }
 
-  TextField.prototype.attachEventHanlder = function () {
-    var _this = this;
-
-    var _a;
-
-    (_a = this.container) === null || _a === void 0 ? void 0 : _a.addEventListener('change', function () {
-      return _this.onChange;
+  TextField.prototype.validate = function () {
+    var inputValue = this.data.text ? this.data.text.trim() : '';
+    var validatedRules = this.validateRules.filter(function (rule) {
+      return rule.rule.test(inputValue) !== rule.match;
     });
+    return validatedRules.length > 0 ? validatedRules[0] : null;
   };
 
   TextField.prototype.buildData = function () {
+    var isValid = this.validate();
+
     if (this.updated) {
       return __assign(__assign({}, this.data), {
-        updated: this.updated
+        updated: this.updated,
+        valid: !isValid,
+        validateMessage: isValid ? isValid.message : ''
       });
     } else {
       return __assign(__assign({}, this.data), {
@@ -228,28 +292,30 @@ function () {
     }
   };
 
-  TextField.prototype.onChange = function (e) {
-    var _a = e.target,
-        id = _a.id,
-        value = _a.value;
+  TextField.prototype.addValidateRules = function (validateRule) {
+    this.validateRules.push(validateRule);
+  };
 
-    if (id === this.data.id) {
-      // this.update = true
-      this.data.text = value; // this.update()
-    }
+  TextField.prototype.update = function () {
+    var container = document.querySelector("#field-" + this.data.id);
+    var divFragement = document.createElement('div');
+    divFragement.innerHTML = this.template(this.buildData());
+    container.innerHTML = divFragement.children[0].innerHTML;
   };
 
   TextField.prototype.render = function () {
+    var _a;
+
     var divFragement = document.createElement('div');
     divFragement.innerHTML = this.template(this.buildData());
-    this.container.appendChild(divFragement.children[0]);
+    (_a = document.querySelector(this.container)) === null || _a === void 0 ? void 0 : _a.appendChild(divFragement.children[0]);
   };
 
   return TextField;
 }();
 
 exports.default = TextField;
-},{"./text-field.template":"src/views/text-field.template.ts","../utils":"src/utils/index.ts"}],"src/views/index.ts":[function(require,module,exports) {
+},{"./text-field.template":"src/views/text-field.template.ts","../utils":"src/utils/index.ts","../constants":"src/constants.ts"}],"src/views/index.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -286,6 +352,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var app_template_1 = __importDefault(require("./app.template"));
 
+var constants_1 = require("./constants");
+
 var views_1 = require("./views");
 
 var App =
@@ -298,27 +366,35 @@ function () {
       title: '내가 만드는 회원가입'
     });
     this.textNodes = [];
-    this.textNodes.push(new views_1.TextField('#required-fields', {
+    var nameField = new views_1.TextField('#required-fields', {
       id: 'name',
       label: '이름',
       type: 'text',
       placeholder: '이름을 입력하세요.',
       require: true
-    }));
-    this.textNodes.push(new views_1.TextField('#required-fields', {
+    });
+    var idField = new views_1.TextField('#required-fields', {
       id: 'id',
       label: '아이디',
       type: 'text',
       placeholder: '아이디를 입력하세요.',
       require: true
-    }));
-    this.textNodes.push(new views_1.TextField('#required-fields', {
+    });
+    var emailField = new views_1.TextField('#required-fields', {
       id: 'email',
       label: '이메일',
       type: 'email',
       placeholder: '이메일을 입력하세요.',
       require: true
-    }));
+    });
+    idField.addValidateRules(constants_1.CantContainWhitespace);
+    idField.addValidateRules(constants_1.CantStartNumber);
+    idField.addValidateRules(constants_1.MinimumLengthLimit(3));
+    emailField.addValidateRules(constants_1.CantContainWhitespace);
+    emailField.addValidateRules(constants_1.RequireEmailRule);
+    this.textNodes.push(nameField);
+    this.textNodes.push(idField);
+    this.textNodes.push(emailField);
   }
 
   App.prototype.render = function () {
@@ -331,7 +407,7 @@ function () {
 }();
 
 exports.default = App;
-},{"./app.template":"src/app.template.ts","./views":"src/views/index.ts"}],"src/index.ts":[function(require,module,exports) {
+},{"./app.template":"src/app.template.ts","./constants":"src/constants.ts","./views":"src/views/index.ts"}],"src/index.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -376,7 +452,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55845" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59895" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

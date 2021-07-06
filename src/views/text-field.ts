@@ -1,6 +1,7 @@
 import template from './text-field.template'
 import { nextTick } from '../utils';
-import { AnyObject } from "../types";
+import { AnyObject, ValidateRule } from "../types";
+import { RequireRule } from '../constants';
 
 type Props = {
   id: string;
@@ -24,28 +25,40 @@ const DefaultProps : Props = {
 export default class TextField {
   private template = template;
   data: AnyObject;
-  container: HTMLElement;
-  updated: boolean;
+  container: string;
+  updated: boolean = false;
+  validateRules: ValidateRule[] = [];
 
   constructor(container: string, data: AnyObject = {}) {
-    this.template = template
     this.data = data
-    this.container = document.querySelector(container) as HTMLElement
-    this.updated = false
+    this.container = container
     this.data = {...DefaultProps, ...data}
+    
+    this.addValidateRules(RequireRule)
 
     nextTick(this.attachEventHanlder)
   }
 
-  private attachEventHanlder() {
-    this.container?.addEventListener('change', () => this.onChange)
+  private attachEventHanlder = () => {
+    document.querySelector(this.container)?.addEventListener('change', this.onChange)
+  }
+
+  private validate() {
+    const inputValue = this.data.text ? this.data.text.trim() : ''
+    const validatedRules = this.validateRules.filter((rule) => rule.rule.test(inputValue) !== rule.match)
+    
+    return validatedRules.length  > 0 ? validatedRules[0] : null 
   }
 
   private buildData() {
+    const isValid :  ValidateRule | null = this.validate()
+
     if (this.updated) {
       return {
         ...this.data,
-        updated: this.updated
+        updated: this.updated,
+        valid: !isValid,
+        validateMessage: isValid ? isValid.message : ''
       }
     } else {
       return {
@@ -56,19 +69,31 @@ export default class TextField {
     }
   }
 
-  private onChange(e: Event) {
+  public addValidateRules(validateRule : ValidateRule) {
+    this.validateRules.push(validateRule)
+  }
+  
+  update() {
+    const container = document.querySelector(`#field-${this.data.id}`) as HTMLElement
+    const divFragement = document.createElement('div')
+
+    divFragement.innerHTML = this.template(this.buildData())
+    container.innerHTML = divFragement.children[0].innerHTML
+  }
+
+
+  private onChange = (e: Event) => {
     const { id, value } = e.target as HTMLInputElement
     if (id === this.data.id) {
-      // this.update = true
+      this.updated = true
       this.data.text = value
-      // this.update()
+      this.update()
     }
-
   }
 
   public render() {
     const divFragement = document.createElement('div')
     divFragement.innerHTML = this.template(this.buildData())
-    this.container.appendChild(divFragement.children[0])
+    document.querySelector(this.container)?.appendChild(divFragement.children[0])
   }
 }
