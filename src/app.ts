@@ -1,16 +1,18 @@
 import template from './app.template'
 import { CantContainWhitespace, CantStartNumber, MinimumLengthLimit, RequireEmailRule } from './constants';
-import { TextField } from "./views";
+import { AnyObject } from './types';
+import { TextField, PasswordField } from "./views";
 
 export default class App {
   container: HTMLElement;
-  textNodes: TextField[];
+  fields: AnyObject[];
   template = template;
 
   constructor(container : string) {
     this.container = document.getElementById(container) as HTMLElement
     this.container.innerHTML = this.template({title: '내가 만드는 회원가입'})
-    this.textNodes = []
+    this.fields = []
+
     const nameField = new TextField('#required-fields', 
       {id: 'name', label: '이름',  type: 'text', placeholder: '이름을 입력하세요.', require: true}
     )
@@ -20,6 +22,7 @@ export default class App {
     const emailField = new TextField('#required-fields',
       {id: 'email', label: '이메일', type: 'email', placeholder: '이메일을 입력하세요.', require: true}
     )
+    const pwField = new PasswordField('#required-fields')
 
     idField.addValidateRules(CantContainWhitespace)
     idField.addValidateRules(CantStartNumber)
@@ -28,15 +31,15 @@ export default class App {
     emailField.addValidateRules(CantContainWhitespace)
     emailField.addValidateRules(RequireEmailRule)
 
-    this.textNodes.push(nameField)
-    this.textNodes.push(idField)
-    this.textNodes.push(emailField)
-
+    this.fields.push(nameField)
+    this.fields.push(idField)
+    this.fields.push(emailField)
+    this.fields.push(pwField)
   }
 
   public render() {
-    this.textNodes.forEach((node) => {
-      node.render()
+    this.fields.forEach((field) => {
+      field.render()
     })
   }
 }

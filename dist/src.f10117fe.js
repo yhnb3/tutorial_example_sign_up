@@ -315,7 +315,162 @@ function () {
 }();
 
 exports.default = TextField;
-},{"./text-field.template":"src/views/text-field.template.ts","../utils":"src/utils/index.ts","../constants":"src/constants.ts"}],"src/views/index.ts":[function(require,module,exports) {
+},{"./text-field.template":"src/views/text-field.template.ts","../utils":"src/utils/index.ts","../constants":"src/constants.ts"}],"src/views/password-field.template.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var template = "\n<div id=\"field-{{id}}\">\n  <div class=\"mt-4\">\n    <div class=\"flex items-start mb-1\">\n      <span class=\"flex items-center\">\n        <svg class=\"flex-shrink-0 h-5 w-5 {{#if valid}}{{#if updated}}text-green-500{{else}}text-gray-200{{/if}}{{else}}text-gray-200{{/if}}\" viewBox=\"0 0 20 20\" fill=\"currentColor\">\n          <path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z\" clip-rule=\"evenodd\" />\n        </svg>\n      </span>        \n      <label class=\"block text-sm\" for=\"password\">{{label}}</label>\n    </div>\n    <input id=\"{{id}}\" name=\"{{id}}\" type=\"password\" value=\"{{text}}\" placeholder=\"{{placeholder}}\" {{#if require}}required{{/if}} aria-label=\"Password\" class=\"w-full px-5 py-1 text-gray-700 bg-gray-200 rounded\">\n    </div>\n\n    <div class=\"mt-1\">\n    <div class=\"flex items-start mb-1\">\n      {{#if strongLevel0}}\n      <span class=\"flex items-center\">\n        <svg class=\"flex-shrink-0 h-5 w-5 text-green-100\" viewBox=\"0 0 20 20\" fill=\"currentColor\">\n          <path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z\" clip-rule=\"evenodd\" />\n        </svg>\n      </span>        \n      {{/if}}\n\n      {{#if strongLevel1}}\n      <span class=\"flex items-center\">\n        <svg class=\"flex-shrink-0 h-5 w-5 text-green-400\" viewBox=\"0 0 20 20\" fill=\"currentColor\">\n          <path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z\" clip-rule=\"evenodd\" />\n        </svg>\n      </span>        \n      {{/if}}\n\n      {{#if strongLevel2}}\n      <span class=\"flex items-center\">\n        <svg class=\"flex-shrink-0 h-5 w-5 text-green-700\" viewBox=\"0 0 20 20\" fill=\"currentColor\">\n          <path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z\" clip-rule=\"evenodd\" />\n        </svg>\n      </span>        \n      {{/if}}\n\n      <label class=\"block text-sm text-gray-300\" for=\"cus_email\">{{strongMessage}}</label>\n    </div>\n  </div>\n</div>\n";
+exports.default = window.Handlebars.compile(template);
+},{}],"src/views/password-field.ts":[function(require,module,exports) {
+"use strict";
+
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+
+      for (var p in s) {
+        if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+      }
+    }
+
+    return t;
+  };
+
+  return __assign.apply(this, arguments);
+};
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var password_field_template_1 = __importDefault(require("./password-field.template"));
+
+var constants_1 = require("../constants");
+
+var utils_1 = require("../utils");
+
+var DefaultProps = {
+  id: 'password',
+  valid: true,
+  require: false,
+  label: '비밀번호',
+  text: '',
+  placeholder: '비밀번호를 입력하세요'
+};
+var StrongMessage = ['금지된 수준', '심각한 수준', '보통 수준', '강력한 암호'];
+
+var PasswordField =
+/** @class */
+function () {
+  function PasswordField(container) {
+    var _this = this;
+
+    this.template = password_field_template_1.default;
+    this.updated = false;
+    this.validateRules = [];
+
+    this.attatchEventHandler = function () {
+      var _a;
+
+      (_a = document.querySelector(_this.container)) === null || _a === void 0 ? void 0 : _a.addEventListener('change', _this.onChange);
+    };
+
+    this.onChange = function (e) {
+      var _a = e.target,
+          id = _a.id,
+          value = _a.value;
+
+      if (id === _this.data.id) {
+        _this.updated = true;
+        _this.data.text = value;
+
+        _this.update();
+      }
+    };
+
+    this.update = function () {
+      var container = document.querySelector("#field-" + _this.data.id);
+      var docFra = document.createElement('div');
+      docFra.innerHTML = _this.template(_this.buildData());
+      container.innerHTML = docFra.children[0].innerHTML;
+    };
+
+    this.buildData = function () {
+      var strongLevel = -1;
+
+      var isInvalid = _this.validate();
+
+      var target = _this.data.text;
+
+      if (target.length >= 1) {
+        strongLevel++;
+      }
+
+      if (target.length >= 12) {
+        strongLevel++;
+      }
+
+      if (/[!@#$%&]/.test(target)) {
+        strongLevel++;
+      }
+
+      if (/\d/.test(target)) {
+        strongLevel++;
+      }
+
+      return __assign(__assign({}, _this.data), {
+        updated: _this.updated,
+        valid: _this.updated ? !isInvalid : true,
+        strongMessage: strongLevel < 0 ? '' : StrongMessage[strongLevel],
+        strongLevel0: strongLevel >= 1,
+        strongLevel1: strongLevel >= 2,
+        strongLevel2: strongLevel >= 3,
+        strongLevel3: strongLevel >= 4
+      });
+    };
+
+    this.validate = function () {
+      var target = _this.data.text ? _this.data.text.trim() : '';
+
+      var invalidateRules = _this.validateRules.filter(function (validateRule) {
+        return validateRule.rule.test(target) !== validateRule.match;
+      });
+
+      return invalidateRules.length > 0 ? invalidateRules[0] : null;
+    };
+
+    this.data = __assign({}, DefaultProps);
+    this.container = container;
+    this.addValidateRule(constants_1.RequireRule);
+    utils_1.nextTick(this.attatchEventHandler);
+  }
+
+  PasswordField.prototype.addValidateRule = function (validateRule) {
+    this.validateRules.push(validateRule);
+  };
+
+  PasswordField.prototype.render = function () {
+    var _a;
+
+    var divFragment = document.createElement('div');
+    divFragment.innerHTML = this.template(this.buildData());
+    (_a = document.querySelector(this.container)) === null || _a === void 0 ? void 0 : _a.appendChild(divFragment.children[0]);
+  };
+
+  return PasswordField;
+}();
+
+exports.default = PasswordField;
+},{"./password-field.template":"src/views/password-field.template.ts","../constants":"src/constants.ts","../utils":"src/utils/index.ts"}],"src/views/index.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -327,7 +482,7 @@ var __importDefault = this && this.__importDefault || function (mod) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.TextField = void 0; // export { default as AddressField } from './address-field';
+exports.PasswordField = exports.TextField = void 0; // export { default as AddressField } from './address-field';
 
 var text_field_1 = require("./text-field");
 
@@ -336,8 +491,17 @@ Object.defineProperty(exports, "TextField", {
   get: function get() {
     return __importDefault(text_field_1).default;
   }
-}); // export { default as PasswordField } from './password-field';
-},{"./text-field":"src/views/text-field.ts"}],"src/app.ts":[function(require,module,exports) {
+});
+
+var password_field_1 = require("./password-field");
+
+Object.defineProperty(exports, "PasswordField", {
+  enumerable: true,
+  get: function get() {
+    return __importDefault(password_field_1).default;
+  }
+});
+},{"./text-field":"src/views/text-field.ts","./password-field":"src/views/password-field.ts"}],"src/app.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -365,7 +529,7 @@ function () {
     this.container.innerHTML = this.template({
       title: '내가 만드는 회원가입'
     });
-    this.textNodes = [];
+    this.fields = [];
     var nameField = new views_1.TextField('#required-fields', {
       id: 'name',
       label: '이름',
@@ -387,19 +551,21 @@ function () {
       placeholder: '이메일을 입력하세요.',
       require: true
     });
+    var pwField = new views_1.PasswordField('#required-fields');
     idField.addValidateRules(constants_1.CantContainWhitespace);
     idField.addValidateRules(constants_1.CantStartNumber);
     idField.addValidateRules(constants_1.MinimumLengthLimit(3));
     emailField.addValidateRules(constants_1.CantContainWhitespace);
     emailField.addValidateRules(constants_1.RequireEmailRule);
-    this.textNodes.push(nameField);
-    this.textNodes.push(idField);
-    this.textNodes.push(emailField);
+    this.fields.push(nameField);
+    this.fields.push(idField);
+    this.fields.push(emailField);
+    this.fields.push(pwField);
   }
 
   App.prototype.render = function () {
-    this.textNodes.forEach(function (node) {
-      node.render();
+    this.fields.forEach(function (field) {
+      field.render();
     });
   };
 
@@ -452,7 +618,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59895" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54511" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
