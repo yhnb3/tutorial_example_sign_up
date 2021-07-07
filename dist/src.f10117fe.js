@@ -162,7 +162,74 @@ exports.RequireEmailRule = {
   match: true,
   message: '이메일 형식으로 입력하셔야 합니다.'
 };
-},{}],"src/views/text-field.template.ts":[function(require,module,exports) {
+},{}],"src/views/address-field.template.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var template = "\n<div id=\"field-{{id}}\">\n\n  <div class=\"mt-2\">\n    <label class=\"block text-sm\" for=\"cus_email\">{{label}}</label>\n    <div class=\"flex items-center\">\n      <input id=\"address1\" name=\"address1\" type=\"text\" value=\"{{displayAddress}}\" placeholder=\"\uC8FC\uC18C\uB97C \uAC80\uC0C9\uD574 \uC8FC\uC138\uC694\" class=\"w-full px-2 py-2 text-gray-700 bg-gray-200 rounded\">\n      <button id=\"search-address\" class=\"bg-gray-300 text-gray-500 px-1 py-1 rounded shadow \" style=\"margin-left: -3rem;\">\n        <svg fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" viewBox=\"0 0 24 24\" class=\"w-6 h-6\"><path d=\"M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\"></path></svg>\n      </button>\n    </div>\n  </div>\n\n  <div class=\"mt-2\">\n    <label class=\"hidden text-sm block text-gray-600\" for=\"address2\">\uC0C1\uC138 \uC8FC\uC18C</label>\n    <input id=\"address2\" name=\"address2\" type=\"text\" placeholder=\"\uC0C1\uC138 \uC8FC\uC18C\" aria-label=\"Address 2\" class=\"w-full px-2 py-2 text-gray-700 bg-gray-200 rounded\" >\n  </div>\n\n</div>\n";
+exports.default = window.Handlebars.compile(template);
+},{}],"src/views/address-field.ts":[function(require,module,exports) {
+"use strict";
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var address_field_template_1 = __importDefault(require("./address-field.template"));
+
+var AddressField =
+/** @class */
+function () {
+  function AddressField(container) {
+    var _this = this;
+
+    this.template = address_field_template_1.default;
+    this.data = {
+      id: 'address',
+      label: '주소',
+      displayAdress: ''
+    };
+
+    this.update = function (address) {
+      _this.data.displayAdress = address;
+      var container = document.querySelector("#field-" + _this.data.id);
+      var docFrag = document.createElement('div');
+      docFrag.innerHTML = _this.template(_this.data);
+      container.innerHTML = docFrag.children[0].innerHTML;
+    };
+
+    this.render = function () {
+      var _a;
+
+      var container = document.querySelector(_this.container);
+      var divFrag = document.createElement('div');
+      divFrag.innerHTML = _this.template(_this.data);
+      container.appendChild(divFrag.children[0]);
+      (_a = container.querySelector('#search-address')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', function () {
+        new window.daum.Postcode({
+          oncomplete: function oncomplete(data) {
+            container.querySelector('#address1').value = data.roadAddress;
+          }
+        }).open();
+      });
+    };
+
+    this.container = container;
+  }
+
+  return AddressField;
+}();
+
+exports.default = AddressField;
+},{"./address-field.template":"src/views/address-field.template.ts"}],"src/views/text-field.template.ts":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -482,7 +549,16 @@ var __importDefault = this && this.__importDefault || function (mod) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.PasswordField = exports.TextField = void 0; // export { default as AddressField } from './address-field';
+exports.PasswordField = exports.TextField = exports.AddressField = void 0;
+
+var address_field_1 = require("./address-field");
+
+Object.defineProperty(exports, "AddressField", {
+  enumerable: true,
+  get: function get() {
+    return __importDefault(address_field_1).default;
+  }
+});
 
 var text_field_1 = require("./text-field");
 
@@ -501,7 +577,7 @@ Object.defineProperty(exports, "PasswordField", {
     return __importDefault(password_field_1).default;
   }
 });
-},{"./text-field":"src/views/text-field.ts","./password-field":"src/views/password-field.ts"}],"src/app.ts":[function(require,module,exports) {
+},{"./address-field":"src/views/address-field.ts","./text-field":"src/views/text-field.ts","./password-field":"src/views/password-field.ts"}],"src/app.ts":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -527,7 +603,7 @@ function () {
     this.template = app_template_1.default;
     this.container = document.getElementById(container);
     this.container.innerHTML = this.template({
-      title: '내가 만드는 회원가입'
+      title: '내가 만드는 회원가입 길게 길게 길게 길게 길게 길게'
     });
     this.fields = [];
     var nameField = new views_1.TextField('#required-fields', {
@@ -552,6 +628,7 @@ function () {
       require: true
     });
     var pwField = new views_1.PasswordField('#required-fields');
+    var addressField = new views_1.AddressField('#optional-fields');
     idField.addValidateRules(constants_1.CantContainWhitespace);
     idField.addValidateRules(constants_1.CantStartNumber);
     idField.addValidateRules(constants_1.MinimumLengthLimit(3));
@@ -561,6 +638,7 @@ function () {
     this.fields.push(idField);
     this.fields.push(emailField);
     this.fields.push(pwField);
+    this.fields.push(addressField);
   }
 
   App.prototype.render = function () {
@@ -618,7 +696,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54511" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58451" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

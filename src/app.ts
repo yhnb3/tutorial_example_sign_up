@@ -1,7 +1,7 @@
 import template from './app.template'
 import { CantContainWhitespace, CantStartNumber, MinimumLengthLimit, RequireEmailRule } from './constants';
 import { AnyObject } from './types';
-import { TextField, PasswordField } from "./views";
+import { TextField, PasswordField, AddressField } from "./views";
 
 export default class App {
   container: HTMLElement;
@@ -10,7 +10,7 @@ export default class App {
 
   constructor(container : string) {
     this.container = document.getElementById(container) as HTMLElement
-    this.container.innerHTML = this.template({title: '내가 만드는 회원가입'})
+    this.container.innerHTML = this.template({title: '내가 만드는 회원가입 길게 길게 길게 길게 길게 길게'})
     this.fields = []
 
     const nameField = new TextField('#required-fields', 
@@ -24,6 +24,8 @@ export default class App {
     )
     const pwField = new PasswordField('#required-fields')
 
+    const addressField = new AddressField('#optional-fields')
+
     idField.addValidateRules(CantContainWhitespace)
     idField.addValidateRules(CantStartNumber)
     idField.addValidateRules(MinimumLengthLimit(3))
@@ -35,6 +37,7 @@ export default class App {
     this.fields.push(idField)
     this.fields.push(emailField)
     this.fields.push(pwField)
+    this.fields.push(addressField)
   }
 
   public render() {
