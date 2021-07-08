@@ -38,11 +38,35 @@ export default class App {
     this.fields.push(emailField)
     this.fields.push(pwField)
     this.fields.push(addressField)
+
+
+    setInterval(this.monitoringValidation, 1000 / 30)
+  }
+
+  private monitoringValidation = () => {
+    const submitBtn = document.querySelector('#btn-join') as HTMLButtonElement
+    if (this.fields.filter(field => field.isValid).length === this.fields.length) {
+      submitBtn.classList.remove('bg-gray-300')
+      submitBtn.classList.add('bg-green-500')
+    } else {
+      submitBtn.classList.add('bg-gray-300')
+      submitBtn.classList.remove('bg-green-500')
+    }
   }
 
   public render() {
     this.fields.forEach((field) => {
       field.render()
+    })
+
+    document.querySelector('#btn-join')?.addEventListener('click',  (e: Event) => {
+      e.preventDefault();
+
+      const submitData = this.fields
+        .map(field => ({ [field.name] : field.value }))
+        .reduce((a, b) => ({...a, ...b}), {})
+
+      console.log(submitData)
     })
   }
 }

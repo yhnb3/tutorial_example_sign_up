@@ -43,6 +43,22 @@ export default class TextField {
     document.querySelector(this.container)?.addEventListener('change', this.onChange)
   }
 
+  get getText() {
+    return this.data.text
+  }
+
+  get name() {
+    return this.data.id
+  }
+
+  get isValid() {
+    return !this.validate()
+  }
+
+  get value() {
+    return this.data.text || ''
+  }
+
   private validate() {
     const inputValue = this.data.text ? this.data.text.trim() : ''
     const validatedRules = this.validateRules.filter((rule) => rule.rule.test(inputValue) !== rule.match)
@@ -51,14 +67,14 @@ export default class TextField {
   }
 
   private buildData() {
-    const isValid :  ValidateRule | null = this.validate()
+    const isInValid :  ValidateRule | null = this.validate()
 
     if (this.updated) {
       return {
         ...this.data,
         updated: this.updated,
-        valid: !isValid,
-        validateMessage: isValid ? isValid.message : ''
+        valid: !isInValid,
+        validateMessage: isInValid ? isInValid.message : ''
       }
     } else {
       return {

@@ -225,6 +225,47 @@ function () {
     this.container = container;
   }
 
+  Object.defineProperty(AddressField.prototype, "getAddress1", {
+    get: function get() {
+      return this.data.displayAdress;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(AddressField.prototype, "getAddress2", {
+    get: function get() {
+      var addressInput = document.querySelector('#address1');
+      return addressInput.value;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(AddressField.prototype, "isValid", {
+    get: function get() {
+      return true;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(AddressField.prototype, "name", {
+    get: function get() {
+      return this.data.id;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(AddressField.prototype, "value", {
+    get: function get() {
+      var _a, _b;
+
+      var container = document.querySelector(this.container);
+      var address1 = (_a = container.querySelector('#address1')) === null || _a === void 0 ? void 0 : _a.value;
+      var address2 = (_b = container.querySelector('#address2')) === null || _b === void 0 ? void 0 : _b.value;
+      return address1 + " " + (address2 || '');
+    },
+    enumerable: false,
+    configurable: true
+  });
   return AddressField;
 }();
 
@@ -334,6 +375,35 @@ function () {
     utils_1.nextTick(this.attachEventHanlder);
   }
 
+  Object.defineProperty(TextField.prototype, "getText", {
+    get: function get() {
+      return this.data.text;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(TextField.prototype, "name", {
+    get: function get() {
+      return this.data.id;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(TextField.prototype, "isValid", {
+    get: function get() {
+      return !this.validate();
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(TextField.prototype, "value", {
+    get: function get() {
+      return this.data.text || '';
+    },
+    enumerable: false,
+    configurable: true
+  });
+
   TextField.prototype.validate = function () {
     var inputValue = this.data.text ? this.data.text.trim() : '';
     var validatedRules = this.validateRules.filter(function (rule) {
@@ -343,13 +413,13 @@ function () {
   };
 
   TextField.prototype.buildData = function () {
-    var isValid = this.validate();
+    var isInValid = this.validate();
 
     if (this.updated) {
       return __assign(__assign({}, this.data), {
         updated: this.updated,
-        valid: !isValid,
-        validateMessage: isValid ? isValid.message : ''
+        valid: !isInValid,
+        validateMessage: isInValid ? isInValid.message : ''
       });
     } else {
       return __assign(__assign({}, this.data), {
@@ -525,6 +595,35 @@ function () {
     this.validateRules.push(validateRule);
   };
 
+  Object.defineProperty(PasswordField.prototype, "getPassword", {
+    get: function get() {
+      return this.data.text;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(PasswordField.prototype, "value", {
+    get: function get() {
+      return this.data.text || '';
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(PasswordField.prototype, "name", {
+    get: function get() {
+      return this.data.id;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  Object.defineProperty(PasswordField.prototype, "isValid", {
+    get: function get() {
+      return !this.validate();
+    },
+    enumerable: false,
+    configurable: true
+  });
+
   PasswordField.prototype.render = function () {
     var _a;
 
@@ -580,6 +679,22 @@ Object.defineProperty(exports, "PasswordField", {
 },{"./address-field":"src/views/address-field.ts","./text-field":"src/views/text-field.ts","./password-field":"src/views/password-field.ts"}],"src/app.ts":[function(require,module,exports) {
 "use strict";
 
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+
+      for (var p in s) {
+        if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+      }
+    }
+
+    return t;
+  };
+
+  return __assign.apply(this, arguments);
+};
+
 var __importDefault = this && this.__importDefault || function (mod) {
   return mod && mod.__esModule ? mod : {
     "default": mod
@@ -600,7 +715,24 @@ var App =
 /** @class */
 function () {
   function App(container) {
+    var _this = this;
+
     this.template = app_template_1.default;
+
+    this.monitoringValidation = function () {
+      var submitBtn = document.querySelector('#btn-join');
+
+      if (_this.fields.filter(function (field) {
+        return field.isValid;
+      }).length === _this.fields.length) {
+        submitBtn.classList.remove('bg-gray-300');
+        submitBtn.classList.add('bg-green-500');
+      } else {
+        submitBtn.classList.add('bg-gray-300');
+        submitBtn.classList.remove('bg-green-500');
+      }
+    };
+
     this.container = document.getElementById(container);
     this.container.innerHTML = this.template({
       title: '내가 만드는 회원가입 길게 길게 길게 길게 길게 길게'
@@ -639,11 +771,29 @@ function () {
     this.fields.push(emailField);
     this.fields.push(pwField);
     this.fields.push(addressField);
+    setInterval(this.monitoringValidation, 1000 / 30);
   }
 
   App.prototype.render = function () {
+    var _this = this;
+
+    var _a;
+
     this.fields.forEach(function (field) {
       field.render();
+    });
+    (_a = document.querySelector('#btn-join')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      var submitData = _this.fields.map(function (field) {
+        var _a;
+
+        return _a = {}, _a[field.name] = field.value, _a;
+      }).reduce(function (a, b) {
+        return __assign(__assign({}, a), b);
+      }, {});
+
+      console.log(submitData);
     });
   };
 
@@ -696,7 +846,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58451" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61069" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

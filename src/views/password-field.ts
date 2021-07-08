@@ -89,6 +89,21 @@ export default class PasswordField {
       strongLevel3: strongLevel >= 4,
     }
   }
+  get getPassword() {
+    return this.data.text
+  }
+
+  get value() {
+    return this.data.text || ''
+  }
+
+  get name() {
+    return this.data.id
+  }
+
+  get isValid() {
+    return !this.validate()
+  }
 
   private validate = () : ValidateRule | null  => {
     const target = this.data.text ? this.data.text.trim() : '';
